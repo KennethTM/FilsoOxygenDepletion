@@ -73,15 +73,10 @@ domodel <- function(pars, datain) {
 metab_calc <- function(df){
   datain <- df
   
-  # Pmaxguess <- log(1E-4)
-  # Rmaxguess <- log(0.015)
-  # DOInitguess <- if(is.na(datain$doobs[1])){mean(datain$doobs[1], na.rm = TRUE)}else{abs(datain$doobs[1])}
+  #parguess <- log(c(1.7E-8, 4.5E-3, 1E-5))
+  parguess <- log(c(2.15E-5, 7E-6, datain$doobs[1])) #1.3E-4
   
-  #parguess <- log(c(Pmaxguess, Rmaxguess, alphaguess))
-  parguess <- log(c(1E-3, 1E-4, mean(datain$doobs, na.rm = TRUE)))
-  
-  #fit <- optim(parguess, nllfn, datain = datain, method = "BFGS")
-  fit <- tryCatch(optim(parguess, nllfn, datain = datain, method = "BFGS"), error = function(err) NULL)
+  fit <- tryCatch(optim(parguess, nllfn, datain = datain, method = "Nelder-Mead"), error = function(err){NULL}) #BFGS
   if(is.null(fit)){return(NA)}
   
   gppcoef <- exp(fit$par[1])
@@ -99,11 +94,35 @@ metab_calc <- function(df){
   pars <- list(gppcoef = gppcoef, rcoef = rcoef, doinit = doinit) 
   dopred <- domodel(pars = pars, datain = datain)
   r_spear <- cor(dopred, datain$doobs, method = "spearman")
+  rmse <- sqrt(mean((datain$doobs-dopred)^2))
 
   return(list(data.frame(DateTime_UTC_min = min(datain$DateTime_UTC), DateTime_UTC_max = max(datain$DateTime_UTC),
                                        gppcoef = gppcoef, rcoef = rcoef, doinit = doinit, convergence = convergence,
                                        #gppcoef = gppcoef, rcoef = rcoef, convergence = convergence,
-                                       GPP = GPP, R = R, NEP = NEP, r_spear = r_spear),
+                                       GPP = GPP, R = R, NEP = NEP, r_spear = r_spear, rmse = rmse),
               data.frame(DateTime_UTC = datain$DateTime_UTC, dopred = dopred, doobs = datain$doobs)))
   
+}
+
+#dopred
+doforecast <- function(meta_result, doinit, datain) {
+  
+  nobs <- dim(datain)[1]
+  irr <- datain$lux
+  k.gas <- datain$kgas
+  Rwtr <- datain$wtr
+  zmix <- datain$zmix
+  dummy <- datain$dummy
+  dosat <- datain$dosat
+  
+  dopred <- rep(NA,nobs)
+  atmflux <- rep(NA,nobs)
+  dopred[1] <- doinit
+
+  for (i in 1:(nobs-1)) {
+    atmflux[i] <- dummy[i] * -k.gas[i] * (dopred[i] - dosat[i]) / zmix[i]  
+    dopred[i+1] <- dopred[i] + (meta_result$gppcoef*irr[i]) - (meta_result$rcoef*1.073^(Rwtr[i]-20)) + atmflux[i]
+  }
+  
+  return(data.frame(DateTime_UTC = datain$DateTime_UTC, dopred = dopred))
 }

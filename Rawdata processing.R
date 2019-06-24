@@ -11,6 +11,7 @@ oxygen_list <- lapply(raw_files[grep("*ilt", raw_files)], function(file){read.de
     tbl_df() %>% 
     set_names(c("DateTime_UTC", "wtr", "doobs", "dosat_perc")) %>% 
     mutate(DateTime_UTC = ymd_hms(DateTime_UTC))})
+
 oxygen_df <- bind_rows("ilt_2017" = oxygen_list[[1]], "ilt_2018" = oxygen_list[[2]], .id = "source") %>% 
   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
