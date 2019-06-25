@@ -1,7 +1,7 @@
 #Metabolism calculations
 
 library(tidyverse);library(lubridate);library(LakeMetabolizer)
-source("metabolisme calc func.R")
+source("Metabolism func.R")
 Sys.setenv(TZ="GMT")
 
 raw_data_2018 <- readRDS(paste0(getwd(), "/Output/meta_2018.rds"))
@@ -12,7 +12,7 @@ event <- ymd_hm("2018-07-28 00:00")
 
 prep_data_2018 <- raw_data_2018 %>% 
   mutate(dosat = o2.at.sat.base(wtr),
-         #zmix = ifelse(zmix == 2.7, 1, zmix),
+         #zmix = ifelse(zmix == 2.7, 1.1, zmix),
          wnd_10 = wind.scale.base(wnd, 2.5),
          k600 = k.vachon.base(wnd_10, 9.15*10^6),
          #k600 = k.cole.base(wnd_10),
