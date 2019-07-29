@@ -59,9 +59,10 @@ forecast_df <- metab_2018 %>%
   mutate(forecast = map(metab_result, ~doforecast(.x, doinit=event_doinit, datain=prep_data_2018_after))) %>% 
   unnest(forecast)
 
-forecast_df_median <- forecast_df %>% 
+forecast_df_mean <- forecast_df %>% 
   group_by(DateTime_UTC) %>% 
   summarise(mean = mean(dopred))
+#write.csv(forecast_df_mean, paste0(getwd(), "/Output/filso_ilt_mean_scenario.csv"), row.names = FALSE)
 
 dopred_before <- metab_2018 %>% 
   unnest(metab_pred)
@@ -71,7 +72,7 @@ filso_ilt_plot <- ggplot()+
   geom_point(data=dopred_before, aes(DateTime_UTC, doobs), shape = 1)+
   geom_point(data=prep_data_2018_after, aes(DateTime_UTC, doobs), shape = 1)+
   geom_line(data=dopred_before, aes(DateTime_UTC, dopred), col = "red", size = 1.5)+
-  geom_line(data=forecast_df_median, aes(DateTime_UTC, mean), col = "red", size = 1.5)+
+  geom_line(data=forecast_df_mean, aes(DateTime_UTC, mean), col = "red", size = 1.5)+
   ylab(expression("Dissolved oxygen (mg L"^{-1}*")"))+
   xlab("Dato")+
   geom_vline(xintercept = event, linetype = 2)+
