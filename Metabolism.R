@@ -4,6 +4,13 @@ library(tidyverse);library(lubridate);library(LakeMetabolizer)
 source("Metabolism func.R")
 Sys.setenv(TZ="GMT")
 
+theme_pub <- theme_bw() + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.text = element_text(colour = "black"), 
+        strip.background = element_rect(fill = "white"))
+theme_set(theme_pub)
+
 raw_data_2018 <- readRDS(paste0(getwd(), "/Output/meta_2018.rds"))
 
 ilt_sens_depth <- 0.7
@@ -75,7 +82,8 @@ filso_ilt_plot <- ggplot()+
   geom_line(data=forecast_df_mean, aes(DateTime_UTC, mean), col = "red", size = 1.5)+
   ylab(expression("Dissolved oxygen (mg L"^{-1}*")"))+
   xlab("Dato")+
-  geom_vline(xintercept = event, linetype = 2)+
-  theme_classic()
+  geom_vline(xintercept = event, linetype = 2)
 
-ggsave(paste0(getwd(), "/Output/filso_ilt_plot.png"), filso_ilt_plot, width = 7, height = 5)
+filso_ilt_plot
+
+#ggsave(paste0(getwd(), "/Output/filso_ilt_plot.png"), filso_ilt_plot, width = 7, height = 5)

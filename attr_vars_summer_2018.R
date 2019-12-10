@@ -75,4 +75,4 @@ doc <- df_doc %>%
 all_plots <- airt+wnd+rain+doc+plot_layout(ncol=1)
 all_plots
 
-ggsave(paste0(getwd(), "/attr_vars_plot.png"), all_plots, height = 170, width = 129, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "attr_vars_plot.png"), all_plots, height = 170, width = 129, units = "mm")

@@ -43,7 +43,7 @@ raw_df <- bind_rows(raw_list, .id = "file") %>%
   distinct()
 
 #save intermediary .rds file
-#saveRDS(raw_df, paste0(minidot_path, "ilt_raw_df.rds"))
+#saveRDS(raw_df, paste0(getwd(), "/Output/", "ilt_raw_df.rds"))
 
 year_labels <- data.frame(year = seq(2013, 2018, 1), labels = c("2013", "2014", "2015", "2016*", "2017", "2018"), x = -Inf, y = Inf)
 
@@ -93,7 +93,7 @@ plot_data_clean %>%
         legend.position = "bottom")+
   guides(color = guide_legend(title.position="top"))
 
-ggsave(paste0(getwd(), "/ilt_plot.png"), height = 234, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "ilt_plot.png"), height = 234, width = 174, units = "mm")
 
 plot_data_avg_dif %>% 
   ggplot(aes(min_of_year, wtr_doobs_mean, col = wtr_avg_dif))+
@@ -110,6 +110,6 @@ plot_data_avg_dif %>%
         legend.box = "horizontal")+
   guides(color = guide_colourbar(title.position="top", title = expression(Temperature~anomaly~"("*degree*C*")"), barwidth = unit(45, "mm")))
 
-ggsave(paste0(getwd(), "/wtr_plot.png"), height = 234, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "wtr_plot.png"), height = 234, width = 174, units = "mm")
 
 

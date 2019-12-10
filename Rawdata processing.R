@@ -7,20 +7,26 @@ Sys.setenv(TZ="GMT")
 #Sensorer ved Filsø
 raw_files <- list.files(paste0(getwd(), "/Rawdata"), full.names = TRUE)
 
-oxygen_list <- lapply(raw_files[grep("*ilt", raw_files)], function(file){read.delim(file, sep = ";") %>% 
-    tbl_df() %>% 
-    set_names(c("DateTime_UTC", "wtr", "doobs", "dosat_perc")) %>% 
-    mutate(DateTime_UTC = ymd_hms(DateTime_UTC))})
+# oxygen_list <- lapply(raw_files[grep("ilt_top*", raw_files)], function(file){read.delim(file, sep = ";") %>%
+#     tbl_df() %>%
+#     set_names(c("DateTime_UTC", "wtr", "doobs", "dosat_perc")) %>%
+#     mutate(DateTime_UTC = ymd_hms(DateTime_UTC))})
+# 
+# oxygen_df <- bind_rows("ilt_2017" = oxygen_list[[1]], "ilt_2018" = oxygen_list[[2]], .id = "source") %>%
+#   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
-oxygen_df <- bind_rows("ilt_2017" = oxygen_list[[1]], "ilt_2018" = oxygen_list[[2]], .id = "source") %>% 
+oxygen_df <- readRDS(paste0(getwd(), "/Output/", "ilt_raw_df.rds")) %>% 
+  filter(year(DateTime_UTC) == 2018 & hob == 150) %>% 
   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
-vejrst_df <- read.csv(raw_files[grep("*vejrst.csv", raw_files)], skip = 2, header = FALSE,
-         col.names = c("row", "DateTime_GMT2", "wind_dir", "par", "wnd", "wnd_gust")) %>% 
-  tbl_df() %>% 
-  mutate(DateTime_UTC = dmy_hms(DateTime_GMT2)-2*60*60-1) %>% 
-  select(-row, -DateTime_GMT2) %>% 
-  mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
+#plateau ?? between(DateTime_UTC, ymd_hm("2018-08-06 12:00"), ymd_hm("2018-08-07 12:00"))
+
+# vejrst_df <- read.csv(raw_files[grep("*vejrst.csv", raw_files)], skip = 2, header = FALSE,
+#          col.names = c("row", "DateTime_GMT2", "wind_dir", "par", "wnd", "wnd_gust")) %>% 
+#   tbl_df() %>% 
+#   mutate(DateTime_UTC = dmy_hms(DateTime_GMT2)-2*60*60-1) %>% 
+#   select(-row, -DateTime_GMT2) %>% 
+#   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
 vejrst_2018_df <- read.csv(raw_files[grep("Vejrstation_Filsoe_18-09-12", raw_files)]) %>% 
   tbl_df() %>% 
@@ -101,16 +107,27 @@ st_1_zmix <- wtr_list$zmix %>%
   select(DateTime_UTC, zmix, zmax)
   
 meta_data_2018 <- oxygen_df %>% 
-  filter(source == "ilt_2018") %>% 
-  right_join(data.frame(DateTime_UTC = seq(ymd_hm("2018-07-01 00:10"),
-                                           ymd_hm("2018-08-05 21:50"),
+  #filter(source == "ilt_2018") %>% 
+  # right_join(data.frame(DateTime_UTC = seq(ymd_hm("2018-07-01 00:10"),
+  #                                          ymd_hm("2018-08-05 21:50"),
+  #                                          "10 mins"))) %>%
+  right_join(data.frame(DateTime_UTC = seq(ymd_hm("2018-06-01 00:00"),
+                                           ymd_hm("2018-09-01 00:00"),
                                            "10 mins"))) %>%
-  mutate_at(vars(wtr, doobs), list(na.approx)) %>% 
+  mutate_at(vars(wtr_doobs, doobs), list(na.approx)) %>% 
   left_join(vejrst_2018_df) %>% 
   #left_join(filso_wnd_cor) %>% 
   #left_join(st_1_lux) %>% 
-  left_join(st_1_zmix) %>% 
-  select(DateTime_UTC, wtr, doobs, wnd, par, zmax, zmix)
+  #left_join(st_1_zmix) %>% 
+  mutate(zmix = 1.06, zmax = 2.7) %>% 
+  select(DateTime_UTC, wtr = wtr_doobs, doobs, wnd, par, zmax, zmix)
 
 saveRDS(meta_data_2018, 
         paste0(getwd(), "/Output/meta_2018.rds"))
+
+
+
+
+#Lav metabolisme plot og model
+#Simuler model scenarier og lav mean scenarie
+#Ryd op i scripts og navne
