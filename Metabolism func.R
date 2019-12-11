@@ -74,7 +74,7 @@ metab_calc <- function(df){
   datain <- df
   
   #parguess <- log(c(1.7E-8, 4.5E-3, 1E-5))
-  parguess <- log(c(2.15E-5, 7E-6, datain$doobs[1])) #1.3E-4
+  parguess <- log(c(5E-5, 2E-3, datain$doobs[1])) #1.3E-4 #7E-6
   
   fit <- tryCatch(optim(parguess, nllfn, datain = datain, method = "Nelder-Mead"), error = function(err){NULL}) #BFGS
   if(is.null(fit)){return(NA)}

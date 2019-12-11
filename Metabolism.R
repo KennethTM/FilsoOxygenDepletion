@@ -16,17 +16,19 @@ raw_data_2018 <- readRDS(paste0(getwd(), "/Output/meta_2018.rds"))
 ilt_sens_depth <- 0.7
 
 event <- ymd_hm("2018-07-28 00:00")
+event_end <- ymd_hm("2018-08-13 23:50")
 
 prep_data_2018 <- raw_data_2018 %>% 
   mutate(dosat = o2.at.sat.base(wtr),
          #zmix = ifelse(zmix == 2.7, 1.1, zmix),
          wnd_10 = wind.scale.base(wnd, 2.5),
-         k600 = k.vachon.base(wnd_10, 9.15*10^6),
+         k600 = k.vachon.base(wnd_10, 4223445),
          #k600 = k.cole.base(wnd_10),
          kgas = k600.2.kGAS.base(k600, wtr, "O2")/24/6,
-         dummy = ifelse(zmix < ilt_sens_depth, 0, 1),
+         #dummy = ifelse(zmix < ilt_sens_depth, 0, 1),
+         dummy = 1,
          date = as_date(DateTime_UTC)) %>% 
-  select(date, DateTime_UTC, doobs, dosat, kgas, zmix, lux = par, wtr, dummy)
+  select(date, DateTime_UTC, doobs, dosat, kgas, zmix = zmean, lux = par, wtr, dummy)
 
 prep_data_2018 %>% 
   gather(variable, value, -DateTime_UTC) %>% 
@@ -35,17 +37,25 @@ prep_data_2018 %>%
   facet_grid(variable~., scales = "free")+
   theme_bw()
 
-prep_data_2018_after <- prep_data_2018 %>% 
-  filter(DateTime_UTC > event)
+# prep_data_2018_after <- prep_data_2018 %>% 
+#   filter(DateTime_UTC > event)
+# 
+# prep_data_2018_before <- prep_data_2018 %>% 
+#   filter(DateTime_UTC < event, DateTime_UTC > ymd_hm("2018-07-02 00:00"))
 
-prep_data_2018_before <- prep_data_2018 %>% 
-  filter(DateTime_UTC < event, DateTime_UTC > ymd_hm("2018-07-02 00:00"))
+prep_data_2018_event <- prep_data_2018 %>% 
+  filter(between(DateTime_UTC, event, event_end))
 
-metab_2018 <- prep_data_2018_before %>% 
+prep_data_2018_not_event <- prep_data_2018 %>% 
+  filter(!between(DateTime_UTC, event, event_end), 
+         DateTime_UTC >= ymd_hm("2018-06-07 00:00"),
+         !(DateTime_UTC == ymd_hm("2018-09-01 00:00")))
+
+metab_2018 <- prep_data_2018_not_event %>% 
   #mutate(doobs = rollmean(doobs, 12, align = "center", na.pad = TRUE)) %>% 
   mutate(date_round = round_date(date, "1 days")) %>% 
   select(-date) %>% 
-  nest(-date_round) %>% 
+  nest(data = c(DateTime_UTC, doobs, dosat, kgas, zmix, lux, wtr, dummy)) %>% 
   mutate(metab_mle = map(data, ~metab_calc(.x))) %>% 
   mutate(metab_result = map(metab_mle, ~ as.data.frame(.x[1])),
          metab_pred = map(metab_mle, ~ as.data.frame(.x[2])))
@@ -60,7 +70,23 @@ metab_2018 %>%
 metab_2018 %>% 
   unnest(metab_result) %>% View()
 
-event_doinit <- prep_data_2018_after$doobs[1]
+metab_coefs <- metab_2018 %>% 
+  unnest(metab_result) %>% 
+  select(date_round, gppcoef, rcoef, r_spear)
+
+metab_coefs %>% 
+  filter(r_spear > 0.8) %>% 
+  gather(variable, value, -date_round, -r_spear) %>% 
+  ggplot(aes(x=value,y=..density..))+
+  geom_histogram()+
+  geom_density()+
+  facet_wrap(variable~., scales = "free")
+
+#####Fit distribution to coefs og træk 100 random tal ud som scenarier, lav mean og plot det hele
+
+event_doinit <- prep_data_2018 %>% 
+  filter(DateTime_UTC == event) %>% 
+  pull(doobs)
 
 forecast_df <- metab_2018 %>% 
   mutate(forecast = map(metab_result, ~doforecast(.x, doinit=event_doinit, datain=prep_data_2018_after))) %>% 

@@ -1,6 +1,6 @@
 #Rawdata processing. Read from /Rawdata folder and write processed output to /Output folder. 
 
-library(tidyverse);library(lubridate);library(zoo)
+library(tidyverse);library(lubridate);library(zoo);library(readxl)
 Sys.setenv(TZ="GMT")
 
 #Read raw data files. Clean files initially and save .rds file.
@@ -28,6 +28,7 @@ oxygen_df <- readRDS(paste0(getwd(), "/Output/", "ilt_raw_df.rds")) %>%
 #   select(-row, -DateTime_GMT2) %>% 
 #   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
+####TJEK vejrstation tidszone!!
 vejrst_2018_df <- read.csv(raw_files[grep("Vejrstation_Filsoe_18-09-12", raw_files)]) %>% 
   tbl_df() %>% 
   set_names(c("DateTime_GMT2", "atmpres", "wnd", "wnd_gust", "wnd_dir", "par", "rain", "airt", "rh")) %>% 
@@ -45,9 +46,24 @@ par_uw_df <- bind_rows("st2_2017_bot" = par_uw_list[[1]],
                        "st2_2017_top" = par_uw_list[[3]], 
                        "st2_2018_top" = par_uw_list[[4]], .id = "source")
 
+depths <- read_xls(paste0(getwd(), "/Rawdata/filso_depths.xls"), sheet = 1, skip = 8) %>% 
+  select(datetime = Tid...1, zmean = middeldybde, zmax = maksdybde) %>% 
+  na.omit() %>% 
+  mutate(DateTime_UTC = datetime - 2*60*60) %>% 
+  select(-datetime)
+
+#saveRDS(depths, paste0(getwd(), "/Rawdata/filso_depths.rds"))
+
+depths_interp <- depths %>% 
+  right_join(data.frame(DateTime_UTC = seq(min(depths$DateTime_UTC),
+                                           max(depths$DateTime_UTC),
+                                           "10 mins"))) %>% 
+  mutate_at(vars(zmean, zmax), funs(na.approx(., na.rm = FALSE)))
+
+
 #Tidligere filer med wtr temp data og indices fra filsø
 wtr_list <- lapply(raw_files[grep("*rds", raw_files)], readRDS)
-names(wtr_list) <- c("schmidt", "dif", "wtr", "zmix")
+names(wtr_list) <- c("depths", "schmidt", "dif", "wtr", "zmix")
 
 # #Vejr fra skjern enge
 # #Kalibrer til Filsø data
@@ -119,11 +135,12 @@ meta_data_2018 <- oxygen_df %>%
   #left_join(filso_wnd_cor) %>% 
   #left_join(st_1_lux) %>% 
   #left_join(st_1_zmix) %>% 
-  mutate(zmix = 1.06, zmax = 2.7) %>% 
-  select(DateTime_UTC, wtr = wtr_doobs, doobs, wnd, par, zmax, zmix)
+  #mutate(zmix = 1.06, zmax = 2.7) %>% 
+  left_join(depths_interp) %>% 
+  select(DateTime_UTC, wtr = wtr_doobs, doobs, wnd, par, zmax, zmean) %>% 
+  na.omit()
 
-saveRDS(meta_data_2018, 
-        paste0(getwd(), "/Output/meta_2018.rds"))
+saveRDS(meta_data_2018, paste0(getwd(), "/Output/meta_2018.rds"))
 
 
 

@@ -11,10 +11,12 @@ theme_pub <- theme_bw() +
         strip.background = element_rect(fill = "white"))
 theme_set(theme_pub)
 
+event <- ymd_hm("2018-07-28 00:00")
+
 #all oxygen data from station 1 with minidot in top and bottom
 #summer oxygen plot
 
-minidot_path <- paste0(getwd(), "/Rawdata/Sommer_ilt/")
+minidot_path <- paste0(getwd(), "/Rawdata/Sommer_ilt_lvl1/")
 
 raw_files <- list.files(minidot_path, full.names = TRUE, pattern = "*.TXT")
 
@@ -24,6 +26,7 @@ raw_list <- lapply(raw_files, read.csv,
 
 names(raw_list) <- basename(raw_files)
 
+#####dette data skal flyttes til lvl1 folder
 data_2013 <- read.delim2(paste0(minidot_path, "2013 data/22012014_50_excel.TXT"), 
                                           header = FALSE, stringsAsFactors = FALSE,
                                           col.names = c("timestamp", "DateTime_UTC", "DateTime_CET", "wtr_doobs", "doobs", "dosat_perc")) %>% 
@@ -82,6 +85,7 @@ plot_data_avg_dif <- plot_data_clean %>%
 
 plot_data_clean %>% 
   ggplot(aes(min_of_year, dosat_perc, col = hob_label))+
+  #plot geom_vline
   geom_line()+
   scale_x_continuous(breaks = month_pos, labels = month_labels)+
   ylab("Dissolved oxygen saturation (%)")+
@@ -97,6 +101,7 @@ ggsave(paste0(getwd(), "/Output/", "ilt_plot.png"), height = 234, width = 174, u
 
 plot_data_avg_dif %>% 
   ggplot(aes(min_of_year, wtr_doobs_mean, col = wtr_avg_dif))+
+  #plot geom_vline
   geom_line()+
   scale_x_continuous(breaks = month_pos, labels = month_labels)+
   ylab(expression("Mean watercolumn temperature ("*degree*C*")"))+
