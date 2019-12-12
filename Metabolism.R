@@ -75,7 +75,7 @@ metab_coefs <- metab_2018 %>%
   select(date_round, gppcoef, rcoef, r_spear)
 
 metab_coefs %>% 
-  filter(r_spear > 0.8) %>% 
+  #filter(r_spear > 0.8) %>% 
   gather(variable, value, -date_round, -r_spear) %>% 
   ggplot(aes(x=value,y=..density..))+
   geom_histogram()+
@@ -83,6 +83,23 @@ metab_coefs %>%
   facet_wrap(variable~., scales = "free")
 
 #####Fit distribution to coefs og træk 100 random tal ud som scenarier, lav mean og plot det hele
+metab_coefs$gppcoef %>% hist()
+fitdistr(metab_coefs$gppcoef, "gamma")
+rgamma(100, 1.664673, 2.216927e+04) %>% hist()
+
+sim_pars <- metab_coefs %>% 
+  filter(r_spear > 0.9) %>% 
+  dplyr::select(gppcoef, rcoef) %>% 
+  gather(variable, value) %>% 
+  group_by(variable) %>% 
+  summarise(mean = mean(value), sd = sd(value)) %>% 
+  mutate(sim = map2(mean, sd, ~rnorm(100, .x, .y)))
+
+
+
+
+
+#simuler ilt
 
 event_doinit <- prep_data_2018 %>% 
   filter(DateTime_UTC == event) %>% 

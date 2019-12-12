@@ -19,8 +19,6 @@ oxygen_df <- readRDS(paste0(getwd(), "/Output/", "ilt_raw_df.rds")) %>%
   filter(year(DateTime_UTC) == 2018 & hob == 150) %>% 
   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
-#plateau ?? between(DateTime_UTC, ymd_hm("2018-08-06 12:00"), ymd_hm("2018-08-07 12:00"))
-
 # vejrst_df <- read.csv(raw_files[grep("*vejrst.csv", raw_files)], skip = 2, header = FALSE,
 #          col.names = c("row", "DateTime_GMT2", "wind_dir", "par", "wnd", "wnd_gust")) %>% 
 #   tbl_df() %>% 
@@ -28,12 +26,13 @@ oxygen_df <- readRDS(paste0(getwd(), "/Output/", "ilt_raw_df.rds")) %>%
 #   select(-row, -DateTime_GMT2) %>% 
 #   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
-####TJEK vejrstation tidszone!!
+#tidszone er korrekt her
 vejrst_2018_df <- read.csv(raw_files[grep("Vejrstation_Filsoe_18-09-12", raw_files)]) %>% 
   tbl_df() %>% 
   set_names(c("DateTime_GMT2", "atmpres", "wnd", "wnd_gust", "wnd_dir", "par", "rain", "airt", "rh")) %>% 
   mutate(DateTime_UTC = dmy_hms(DateTime_GMT2)-2*60*60,
-         par = par-1.2)
+         par = par-1.2) %>% 
+  select(-DateTime_GMT2)
 
 par_uw_list <- lapply(raw_files[grep("par*", raw_files)], function(file){read.csv(file, skip = 9, header = FALSE) %>% 
     tbl_df() %>% 
@@ -47,7 +46,7 @@ par_uw_df <- bind_rows("st2_2017_bot" = par_uw_list[[1]],
                        "st2_2018_top" = par_uw_list[[4]], .id = "source")
 
 depths <- read_xls(paste0(getwd(), "/Rawdata/filso_depths.xls"), sheet = 1, skip = 8) %>% 
-  select(datetime = Tid...1, zmean = middeldybde, zmax = maksdybde) %>% 
+  select(datetime = Tid, zmean = middeldybde, zmax = maksdybde) %>% 
   na.omit() %>% 
   mutate(DateTime_UTC = datetime - 2*60*60) %>% 
   select(-datetime)

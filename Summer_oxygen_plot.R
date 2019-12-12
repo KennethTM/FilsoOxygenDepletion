@@ -26,15 +26,18 @@ raw_list <- lapply(raw_files, read.csv,
 
 names(raw_list) <- basename(raw_files)
 
-#####dette data skal flyttes til lvl1 folder
-data_2013 <- read.delim2(paste0(minidot_path, "2013 data/22012014_50_excel.TXT"), 
-                                          header = FALSE, stringsAsFactors = FALSE,
-                                          col.names = c("timestamp", "DateTime_UTC", "DateTime_CET", "wtr_doobs", "doobs", "dosat_perc")) %>% 
-  tbl_df() %>% 
-  mutate(DateTime_UTC = dmy_hm(DateTime_UTC),
-         station = "st1",
-         hob = 150) %>% 
-  select(station, hob, DateTime_UTC, wtr_doobs, doobs, dosat_perc)
+#prepare 2013 data which is in a different format and save
+# data_2013 <- read.delim2(paste0(getwd(), "/Rawdata/Sommer_ilt_raw/2013 data/22012014_50_excel.TXT"), 
+#                                           header = FALSE, stringsAsFactors = FALSE,
+#                                           col.names = c("timestamp", "DateTime_UTC", "DateTime_CET", "wtr_doobs", "doobs", "dosat_perc")) %>% 
+#   tbl_df() %>% 
+#   mutate(DateTime_UTC = dmy_hm(DateTime_UTC),
+#          station = "st1",
+#          hob = 150) %>% 
+#   select(station, hob, DateTime_UTC, wtr_doobs, doobs, dosat_perc)
+# saveRDS(data_2013, paste0(getwd(), "/Rawdata/Sommer_ilt_lvl1/2013_oxygen_data.rds"))
+
+data_2013 <- readRDS(paste0(getwd(), "/Rawdata/Sommer_ilt_lvl1/2013_oxygen_data.rds"))
 
 raw_df <- bind_rows(raw_list, .id = "file") %>% 
   tbl_df() %>% 
@@ -81,7 +84,7 @@ month_labels <- c("June", "July", "August", "September")
 plot_data_avg_dif <- plot_data_clean %>% 
   group_by(year, min_of_year) %>% 
   summarise(wtr_doobs_mean = mean(wtr_doobs, na.rm = TRUE)) %>% 
-  mutate(wtr_avg_dif = wtr_doobs_mean - mean(wtr_doobs_mean, na.rm = TRUE))
+  mutate(wtr_avg_dif = wtr_doobs_mean - mean(wtr_doobs_mean, na.rm = TRUE)) #avg summer temp 18.51
 
 plot_data_clean %>% 
   ggplot(aes(min_of_year, dosat_perc, col = hob_label))+
