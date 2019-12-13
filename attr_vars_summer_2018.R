@@ -40,9 +40,9 @@ df_chla <- read_xlsx(paste0(getwd(), "/Rawdata/filso_chla.xlsx"), sheet = 1) %>%
   mutate(date = seq(ymd("2018-04-17"), by = "1 day", length.out = n()))
 
 df_zmean <- readRDS(paste0(getwd(), "/Rawdata/filso_depths.rds")) %>% 
-  mutate(date = as_date(datetime)) %>% 
+  mutate(date = as_date(DateTime_UTC)) %>% 
   group_by(date) %>% 
-  summarise(zmean = mean(zmean))
+  summarise(zmean_day_mean = mean(zmean))
 
 airt <- df_wnd_rain_airt %>% 
   ggplot(aes(x=date, y=airt_mean, ymin=airt_min, ymax=airt_max))+
@@ -84,7 +84,7 @@ doc <- df_doc %>%
   geom_vline(xintercept = event, linetype = 2)+
   geom_line()+
   geom_point()+
-  ylab(expression("DOC (mg"~L^{-1}*")"))+
+  ylab(expression("DOC (mg C"~L^{-1}*")"))+
   xlab(NULL) +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
@@ -100,7 +100,7 @@ chla <- df_chla %>%
 
 zmean <- df_zmean %>% 
   filter(month(date) %in% c(6, 7, 8)) %>% 
-  ggplot(aes(date, zmean))+
+  ggplot(aes(date, zmean_day_mean))+
   geom_vline(xintercept = event, linetype = 2)+
   geom_line()+
   ylab(expression(z[mean]~"(m)"))+
