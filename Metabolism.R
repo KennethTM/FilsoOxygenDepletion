@@ -112,17 +112,24 @@ event_doinit <- prep_data_2018 %>%
   pull(doobs)
 
 forecast_df <- metab_2018 %>%
-  mutate(forecast = map(metab_result, ~doforecast(.x, doinit=event_doinit, datain=prep_data_2018_event))) %>%
+  mutate(forecast = map(metab_result, ~doforecast(.x, doinit=event_doinit, datain=prep_data_2018_event, gpp_scale = 1, r_scale = 1))) %>%
   unnest(forecast)
 
-forecast_df_mean <- forecast_df %>%
-  group_by(DateTime_UTC) %>%
-  summarise(mean = mean(dopred))
+forecast_df_quantile <- forecast_df %>% 
+  select(DateTime_UTC, dopred) %>% 
+  group_by(DateTime_UTC) %>% 
+  summarise(low = quantile(dopred, 0.025),
+            high = quantile(dopred, 0.975),
+            mean = mean(dopred))
+  # summarise(mean = mean(dopred),
+  #           t_error = qt(0.975, df = 70)*sd(dopred)/sqrt(70)) %>% 
+  # mutate(low = mean - t_error,
+  #        high = mean +  t_error)
 
-#write.csv(forecast_df_mean, paste0(getwd(), "/Output/filso_ilt_mean_scenario.csv"), row.names = FALSE)
 
-# dopred_before <- metab_2018 %>%
-#   unnest(metab_pred)
+# forecast_df_mean <- forecast_df %>%
+#   group_by(DateTime_UTC) %>%
+#   summarise(mean = mean(dopred))
 
 prep_data_2018_event_minus_visit <- prep_data_2018_event %>% 
   mutate(doobs = ifelse(between(DateTime_UTC, ymd_hm("2018-08-06 12:00"), ymd_hm("2018-08-07 12:00")), NA, doobs))
@@ -136,9 +143,10 @@ metab_2018 %>%
   geom_line(aes(y = doobs, col = "Observed"))+
   geom_line(aes(y = dopred, col = "Modelled"))+
   scale_color_manual(values = c("orange", "black"))+
-  geom_line(data = forecast_df, aes(DateTime_UTC, dopred, group=date_round), alpha = 0.2, col = "grey")+
+  #geom_line(data = forecast_df, aes(DateTime_UTC, dopred, group=date_round), alpha = 0.2, col = "grey")+
+  geom_ribbon(data = forecast_df_quantile, aes(x=DateTime_UTC, ymin=low, ymax=high), fill = "grey",  alpha = 0.4)+
   geom_line(data = prep_data_2018_event_minus_visit, aes(DateTime_UTC, doobs))+
-  geom_line(data=forecast_df_mean, aes(DateTime_UTC, mean), col = "orange")+
+  geom_line(data = forecast_df_quantile, aes(DateTime_UTC, mean), col = "orange")+
   ylab(expression("Dissolved oxygen (mg L"^{-1}*")"))+
   xlab(NULL)+
   geom_vline(xintercept = event, linetype = 2)+
@@ -148,16 +156,3 @@ metab_2018 %>%
         legend.position = c(0.1, 0.9))
 
 ggsave(paste0(getwd(), "/Output/filso_ilt_obs_pred.png"), height = 120, width = 174, units = "mm")
-
-#filso_ilt_plot <- ggplot()+
-#   geom_line(data=prep_data_2018_not_event, aes(DateTime_UTC, doobs))+
-#   #geom_line(data=forecast_df, aes(DateTime_UTC, dopred, group=(date_round)), alpha = 0.25, col = "red")+
-#   geom_point(data=dopred_before, aes(DateTime_UTC, doobs), shape = 1)+
-#   geom_point(data=prep_data_2018_after, aes(DateTime_UTC, doobs), shape = 1)+
-#   geom_line(data=dopred_before, aes(DateTime_UTC, dopred), col = "red", size = 1.5)+
-#   geom_line(data=forecast_df_mean, aes(DateTime_UTC, mean), col = "red", size = 1.5)+
-#   ylab(expression("Dissolved oxygen (mg L"^{-1}*")"))+
-#   xlab("Dato")+
-#   geom_vline(xintercept = event, linetype = 2)
-
-#ggsave(paste0(getwd(), "/Output/filso_ilt_plot.png"), filso_ilt_plot, width = 7, height = 5)
