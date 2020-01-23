@@ -123,7 +123,7 @@ metabolism_scaling()
 ggsave(paste0(getwd(), "/Output/fig_metabolism.png"), height = 120, width = 174, units = "mm")
 
 #Investigate how altering gpp and r changes oxygen trajectory during event
-plot_grid <- expand.grid(GPP = c(0.1, 0.5, 1, 1.5, 1.9), R = c(0.1, 0.5, 1, 1.5, 1.9)) %>% 
+plot_grid <- expand.grid(GPP = c(0, 0.5, 1, 2, 3), R = c(0, 0.5, 1, 2, 3)) %>% 
   arrange(GPP) %>% 
   mutate(plots = map2(GPP, R, ~metabolism_scaling(.x, .y, TRUE)))
 
