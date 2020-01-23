@@ -1,17 +1,8 @@
-library(tidyverse);library(lubridate);library(zoo);library(patchwork);library(readxl)
-Sys.setenv(TZ="GMT")
-Sys.setlocale("LC_TIME", "US")
+#Plot of attribute vars during 2018 summer
 
-#ggplot theme
-theme_pub <- theme_bw() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), 
-        axis.text = element_text(colour = "black"), 
-        strip.background = element_rect(fill = "white"))
-theme_set(theme_pub)
+source("libs_and_funcs.R")
 
-event <- ymd("2018-07-28")
-
+#Read data for plotting
 vejrst_2018_df <- read.csv(paste0(getwd(), "/Rawdata/Vejrstation_Filsoe_18-09-12.csv")) %>% 
   tbl_df() %>% 
   set_names(c("DateTime_GMT2", "atmpres", "wnd", "wnd_gust", "wnd_dir", "par", "rain", "airt", "rh")) %>% 
@@ -44,9 +35,10 @@ df_zmean <- readRDS(paste0(getwd(), "/Rawdata/filso_depths.rds")) %>%
   group_by(date) %>% 
   summarise(zmean_day_mean = mean(zmean))
 
+#Create individual plots
 airt <- df_wnd_rain_airt %>% 
   ggplot(aes(x=date, y=airt_mean, ymin=airt_min, ymax=airt_max))+
-  geom_vline(xintercept = event, linetype = 2)+
+  geom_vline(xintercept = event_date, linetype = 2)+
   geom_ribbon(fill=grey(0.7))+
   geom_line()+
   ylab(expression("Air temperature ("*degree*C*")"))+
@@ -57,7 +49,7 @@ airt <- df_wnd_rain_airt %>%
 
 wnd <- df_wnd_rain_airt %>% 
   ggplot(aes(x=date, y=wnd_mean, ymin=wnd_min, ymax=wnd_max))+
-  geom_vline(xintercept = event, linetype = 2)+
+  geom_vline(xintercept = event_date, linetype = 2)+
   geom_ribbon(fill=grey(0.7))+
   geom_line()+
   ylab(expression("Wind speed ("*m~s^{-1}*")"))+
@@ -69,8 +61,8 @@ wnd <- df_wnd_rain_airt %>%
 
 rain <- df_wnd_rain_airt %>% 
   ggplot(aes(date, rain_sum))+
-  geom_vline(xintercept = event, linetype = 2)+
-  geom_col(fill = "black", col = "white")+
+  geom_vline(xintercept = event_date, linetype = 2)+
+  geom_col(fill = "grey", col = "white")+
   ylab("Precipitation (mm)")+
   xlab(NULL) +
   theme(axis.text.x = element_blank(),
@@ -81,7 +73,7 @@ rain <- df_wnd_rain_airt %>%
 doc <- df_doc %>% 
   filter(month(date) %in% c(6, 7, 8)) %>% 
   ggplot(aes(date, doc))+
-  geom_vline(xintercept = event, linetype = 2)+
+  geom_vline(xintercept = event_date, linetype = 2)+
   geom_line()+
   geom_point()+
   ylab(expression("DOC (mg C"~L^{-1}*")"))+
@@ -92,7 +84,7 @@ doc <- df_doc %>%
 chla <- df_chla %>% 
   filter(month(date) %in% c(6, 7, 8)) %>% 
   ggplot(aes(date, chla))+
-  geom_vline(xintercept = event, linetype = 2)+
+  geom_vline(xintercept = event_date, linetype = 2)+
   geom_line()+
   ylab(expression("Chlorphyll A ("*mu*g~L^{-1}*")"))+
   xlab(NULL)+
@@ -101,13 +93,14 @@ chla <- df_chla %>%
 zmean <- df_zmean %>% 
   filter(month(date) %in% c(6, 7, 8)) %>% 
   ggplot(aes(date, zmean_day_mean))+
-  geom_vline(xintercept = event, linetype = 2)+
+  geom_vline(xintercept = event_date, linetype = 2)+
   geom_line()+
   ylab(expression(z[mean]~"(m)"))+
   xlab(NULL)+
   scale_x_date(date_labels = "%b", limits = c(ymd("2018-06-01"), ymd("2018-09-01")))
 
+#Collect plots and save
 all_plots_2col <- airt+wnd+rain+doc+zmean+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
 all_plots_2col
 
-ggsave(paste0(getwd(), "/Output/", "attr_vars_plot.png"), all_plots_2col, height = 160, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")

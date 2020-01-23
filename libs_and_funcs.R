@@ -1,7 +1,27 @@
-#Funktion oprindeligt fra Gribskov project
-#Funktioner til beregning af metabolism
-#Returneres: GPP, R og NEP, plot af dopred vs doobs med cor værdi
+#Script for loading libraries and functions used in the analysis
+
+library(tidyverse);library(lubridate);library(zoo);library(readxl)
+library(LakeMetabolizer);library(patchwork)
+
+Sys.setenv(TZ="GMT")
+Sys.setlocale("LC_TIME", "US")
+
+#Aq. Sci.:For most journals the figures should be 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm.
+theme_pub <- theme_bw() + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.text = element_text(colour = "black"), 
+        strip.background = element_rect(fill = "white"))
+theme_set(theme_pub)
+
+event_date <- ymd("2018-07-28")
+
+event <- ymd_hm("2018-07-28 00:00")
+event_end <- ymd_hm("2018-08-12 23:50")
+
+#Functions for calculating lake metabolism (MLE)
 #Input: DateTime_UTC, doobs, dosat, kgas, zmix, lux, wtr, dummy
+#Return: GPP, R og NEP, plot af dopred vs doobs med cor værdi
 
 #NLL funktion med GPP Jassby/Platt og Arhenius/Jørgensen R
 nllfn <- function (pars, datain) {
@@ -95,11 +115,11 @@ metab_calc <- function(df){
   dopred <- domodel(pars = pars, datain = datain)
   r_spear <- cor(dopred, datain$doobs, method = "spearman")
   rmse <- sqrt(mean((datain$doobs-dopred)^2))
-
+  
   return(list(data.frame(DateTime_UTC_min = min(datain$DateTime_UTC), DateTime_UTC_max = max(datain$DateTime_UTC),
-                                       gppcoef = gppcoef, rcoef = rcoef, doinit = doinit, convergence = convergence,
-                                       #gppcoef = gppcoef, rcoef = rcoef, convergence = convergence,
-                                       GPP = GPP, R = R, NEP = NEP, r_spear = r_spear, rmse = rmse),
+                         gppcoef = gppcoef, rcoef = rcoef, doinit = doinit, convergence = convergence,
+                         #gppcoef = gppcoef, rcoef = rcoef, convergence = convergence,
+                         GPP = GPP, R = R, NEP = NEP, r_spear = r_spear, rmse = rmse),
               data.frame(DateTime_UTC = datain$DateTime_UTC, dopred = dopred, doobs = datain$doobs)))
   
 }
@@ -118,7 +138,7 @@ doforecast <- function(meta_result, doinit, datain, gpp_scale = 1, r_scale = 1) 
   dopred <- rep(NA,nobs)
   atmflux <- rep(NA,nobs)
   dopred[1] <- doinit
-
+  
   for (i in 1:(nobs-1)) {
     atmflux[i] <- dummy[i] * -k.gas[i] * (dopred[i] - dosat[i]) / zmix[i]  
     dopred[i+1] <- dopred[i] + gpp_scale*(meta_result$gppcoef*irr[i]) - r_scale*(meta_result$rcoef*1.073^(Rwtr[i]-20)) + atmflux[i]
