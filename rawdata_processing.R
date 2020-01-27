@@ -106,20 +106,3 @@ meta_data_2018 <- oxygen_2018_df %>%
 
 saveRDS(meta_data_2018, paste0(getwd(), "/Output/meta_2018.rds"))
 
-
-# #hvorfor lux fra overfladen er dårlig:
-# wtr_list$wtr %>%
-#   ggplot(aes(DateTime, lux))+
-#   geom_line()+
-#   facet_grid(factor(hob)~., scales = "free")+
-#   theme_bw()
-# 
-# par_uw_2018_df %>% 
-#   ggplot(aes(DateTime_UTC, par_uw))+
-#   geom_line()+
-#   theme_bw()
-#
-# meta_data_2018 %>%
-#   ggplot(aes(DateTime_UTC, par))+
-#   geom_line()+
-#   theme_bw()

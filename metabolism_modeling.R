@@ -7,12 +7,20 @@ raw_data_2018 <- readRDS(paste0(getwd(), "/Output/meta_2018.rds"))
 #Because of the shallow water column zmean is used instead of zmix for modeling
 prep_data_2018 <- raw_data_2018 %>% 
   mutate(dosat = o2.at.sat.base(wtr),
-         wnd_10 = wind.scale.base(wnd, 2.5),
+         wnd_10 = wind.scale.base(wnd, 2),
          k600 = k.vachon.base(wnd_10, 4223445),
          kgas = k600.2.kGAS.base(k600, wtr, "O2")/24/6,
          dummy = 1,
          date = as_date(DateTime_UTC)) %>% 
   dplyr::select(date, DateTime_UTC, doobs, dosat, kgas, zmix = zmean, lux = par, wtr, dummy)
+
+#Data til beregning af nat slopes (resp under iltsvind)
+# library(openxlsx)
+# prep_data_2018 %>%
+#   mutate(doobs_diff = c(0, diff(doobs)),
+#          o2_flux =  -kgas * (doobs - dosat) / zmix,
+#          nep = doobs_diff - o2_flux) %>%
+#   write.xlsx(paste0(getwd(), "/Output/filso_nep_raw.xlsx"))
 
 #Plot of input variables
 prep_data_2018 %>% 
