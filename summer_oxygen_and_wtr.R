@@ -54,7 +54,7 @@ plot_data_clean %>%
   scale_x_continuous(breaks = month_pos, labels = month_labels)+
   ylab("Dissolved oxygen saturation (%)")+
   xlab(NULL)+
-  scale_color_manual(values = c("grey", "black"), name = "Sensor position")+
+  scale_color_manual(values = c("cornflowerblue", "coral1"), name = "Sensor position")+
   geom_text(data = year_labels, aes(x = x, y = y, label = labels), inherit.aes = FALSE, hjust = -0.2, vjust = 1.2)+
   facet_grid(year~.)+
   theme(strip.text = element_blank(),

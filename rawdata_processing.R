@@ -69,6 +69,7 @@ par_uw_df <- bind_rows("st2_2017_bot" = par_uw_list[[1]],
 par_uw_2018_df <- par_uw_df %>% 
   filter(source == "st2_2018_top")
 
+###Tjek denne excel fil###
 depths_2018 <- read_xls(paste0(getwd(), "/Rawdata/filso_depths.xls"), sheet = 1, skip = 8) %>% 
   select(datetime = Tid...1, zmean = middeldybde, zmax = maksdybde) %>% 
   na.omit() %>% 

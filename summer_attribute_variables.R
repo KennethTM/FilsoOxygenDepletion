@@ -62,7 +62,7 @@ wnd <- df_wnd_rain_airt %>%
 rain <- df_wnd_rain_airt %>% 
   ggplot(aes(date, rain_sum))+
   geom_vline(xintercept = event_date, linetype = 2)+
-  geom_col(fill = "grey", col = "white")+
+  geom_col(fill = "black", col = "black")+
   ylab("Precipitation (mm)")+
   xlab(NULL) +
   theme(axis.text.x = element_blank(),
@@ -100,7 +100,8 @@ zmean <- df_zmean %>%
   scale_x_date(date_labels = "%b", limits = c(ymd("2018-06-01"), ymd("2018-09-01")))
 
 #Collect plots and save
-all_plots_2col <- airt+wnd+rain+doc+zmean+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
+all_plots_2col <- airt+wnd+rain+zmean+doc+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
 all_plots_2col
 
 ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")
+

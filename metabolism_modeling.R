@@ -126,9 +126,9 @@ metabolism_scaling <- function(gpp_scale = 1, r_scale = 1, label = FALSE){
     return(metab_plot)
 }
 
-metabolism_scaling()
+metabolism_scaling(label = TRUE)/metabolism_scaling(0.5, 3, TRUE)+plot_annotation(tag_levels = "A")
 
-ggsave(paste0(getwd(), "/Output/fig_metabolism.png"), height = 120, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/fig_metabolism.png"), height = 200, width = 174, units = "mm")
 
 #Investigate how altering gpp and r changes oxygen trajectory during event
 plot_grid <- expand.grid(GPP = c(0, 0.5, 1, 2, 3), R = c(0, 0.5, 1, 2, 3)) %>% 
