@@ -105,3 +105,26 @@ all_plots_2col
 
 ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")
 
+#Plot of CDOM through all years during summer
+df_cdom <- read_xlsx(paste0(getwd(), "/Rawdata/filso_cdom_300_750.xlsx"), sheet = 2) %>% 
+  gather(year, value, -jday) %>% 
+  na.omit() %>% 
+  mutate(origin = ymd(paste0(year, "-01-01")),
+         date = origin+jday) %>% 
+  filter(month(date) %in% c(6, 7, 8)) 
+
+#Labels for 1. juni, juli og august
+jday_pos <- c(151, 181, 211, 242)
+jday_labs <- c("Jun", "Jul", "Aug", "Sep")
+
+df_cdom %>% 
+  ggplot(aes(jday, value, col = year))+
+  geom_line()+
+  geom_point()+
+  scale_color_brewer(palette = "Dark2")+
+  scale_x_continuous(breaks = jday_pos, labels = jday_labs)+
+  ylab(expression("CDOM"[300-750]*" (m"^{-1}*")"))+
+  xlab("Month")+
+  theme(legend.title = element_blank())
+  
+ggsave(paste0(getwd(), "/Output/", "fig_cdom.png"), height = 84, width = 129, units = "mm")
