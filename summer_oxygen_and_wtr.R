@@ -5,6 +5,27 @@ source("libs_and_funcs.R")
 #Read data
 raw_df <- readRDS(paste0(getwd(), "/Output/", "raw_df.rds"))
 
+# prut <- raw_df %>% 
+#   filter(month(DateTime_UTC) %in% c(6, 7, 8)) %>% 
+#   filter(DateTime_UTC <= event) %>% 
+#   mutate(date = as_date(DateTime_UTC)) %>% 
+#   group_by(date) %>% 
+#   summarise(wtr=mean(wtr_doobs)) %>% 
+#   filter(year(date)==2018 & wtr >= 20) %>% 
+#   pull(date)
+# 
+# raw_df %>% 
+#   mutate(DateTime_UTC=round_date(DateTime_UTC, "10 mins")) %>% 
+#   select(DateTime_UTC, hob, wtr_doobs) %>% 
+#   filter(as_date(DateTime_UTC) %in% prut) %>% 
+#   group_by(DateTime_UTC, hob) %>% 
+#   summarise(wtr = mean(wtr_doobs)) %>% 
+#   spread(hob, wtr) %>% 
+#   mutate(hour = hour(DateTime_UTC),
+#          dif = `150`-`50`) %>% 
+#   group_by(hour) %>% 
+#   summarise(dif=mean(dif)) %>% View()
+
 #Prepare data for plotting
 year_labels <- data.frame(year = seq(2013, 2018, 1), labels = c("2013", "2014", "2015", "2016*", "2017", "2018"), x = -Inf, y = Inf)
 
