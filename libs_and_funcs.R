@@ -1,7 +1,7 @@
 #Script for loading libraries and functions used in the analysis
 
 library(tidyverse);library(lubridate);library(zoo);library(readxl)
-library(LakeMetabolizer);library(patchwork)
+library(LakeMetabolizer);library(patchwork);library(ggsci)
 
 Sys.setenv(TZ="GMT")
 Sys.setlocale("LC_TIME", "US")
@@ -125,7 +125,7 @@ metab_calc <- function(df){
 }
 
 #dopred
-doforecast <- function(meta_result, doinit, datain, gpp_scale = 1, r_scale = 1) {
+doforecast <- function(meta_result, doinit, datain, gpp_scale = 1, r_scale = 1, f_scale = 1) {
   
   nobs <- dim(datain)[1]
   irr <- datain$lux
@@ -141,7 +141,7 @@ doforecast <- function(meta_result, doinit, datain, gpp_scale = 1, r_scale = 1) 
   
   for (i in 1:(nobs-1)) {
     atmflux[i] <- dummy[i] * -k.gas[i] * (dopred[i] - dosat[i]) / zmix[i]  
-    dopred[i+1] <- dopred[i] + gpp_scale*(meta_result$gppcoef*irr[i]) - r_scale*(meta_result$rcoef*1.073^(Rwtr[i]-20)) + atmflux[i]
+    dopred[i+1] <- dopred[i] + gpp_scale*(meta_result$gppcoef*irr[i]) - r_scale*(meta_result$rcoef*1.073^(Rwtr[i]-20)) + f_scale*atmflux[i]
   }
   
   return(data.frame(DateTime_UTC = datain$DateTime_UTC, dopred = dopred))

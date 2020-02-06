@@ -77,16 +77,14 @@ doc <- df_doc %>%
   geom_line()+
   geom_point()+
   ylab(expression("DOC (mg C"~L^{-1}*")"))+
-  xlab(NULL) +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+  xlab(NULL)
 
 chla <- df_chla %>% 
   filter(month(date) %in% c(6, 7, 8)) %>% 
   ggplot(aes(date, chla))+
   geom_vline(xintercept = event_date, linetype = 2)+
   geom_line()+
-  ylab(expression("Chlorphyll A ("*mu*g~L^{-1}*")"))+
+  ylab(expression(Chlorphyll~italic(a)~"("*mu*g~L^{-1}*")"))+
   xlab(NULL)+
   scale_x_date(date_labels = "%b", limits = c(ymd("2018-06-01"), ymd("2018-09-01")))
 
@@ -97,10 +95,12 @@ zmean <- df_zmean %>%
   geom_line()+
   ylab(expression(z[mean]~"(m)"))+
   xlab(NULL)+
-  scale_x_date(date_labels = "%b", limits = c(ymd("2018-06-01"), ymd("2018-09-01")))
+  scale_x_date(date_labels = "%b", limits = c(ymd("2018-06-01"), ymd("2018-09-01"))) # +
+  #theme(axis.text.x = element_blank(),
+  #      axis.ticks.x = element_blank())
 
 #Collect plots and save
-all_plots_2col <- airt+wnd+rain+zmean+doc+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
+all_plots_2col <- airt+wnd+rain+zmean+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
 all_plots_2col
 
 ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")
@@ -119,18 +119,24 @@ df_cdom <- read_xlsx(paste0(getwd(), "/Rawdata/filso_cdom_300_750.xlsx"), sheet 
 jday_pos <- c(151, 181, 211, 242)
 jday_labs <- c("Jun", "Jul", "Aug", "Sep")
 
-library(ggsci)
-
 df_cdom %>% 
-  ggplot(aes(jday, value, col = year))+
+  ggplot(aes(yday(date), value, col = year, linetype = "CDOM"))+
+  geom_vline(xintercept = yday(event_date), linetype = 2)+
   geom_line()+
   geom_point()+
+  geom_line(data = df_doc %>% 
+              filter(month(date) %in% c(6, 7, 8)) %>% 
+              mutate(year = "2018"), aes(yday(date), doc, linetype = "DOC"))+
+  geom_point(data = df_doc %>% 
+              filter(month(date) %in% c(6, 7, 8)) %>% 
+              mutate(year = "2018"), aes(yday(date), doc))+ 
   scale_color_lancet()+
   #scale_color_viridis_d(direction = -1)+
   #scale_color_brewer(palette = "Set1", direction = -1)+
   scale_x_continuous(breaks = jday_pos, labels = jday_labs)+
   ylab(expression("CDOM"[300-750]*" (m"^{-1}*")"))+
   xlab("Month")+
+  scale_y_continuous(breaks = seq(0, 35, 10), limits = c(0, 35), sec.axis = dup_axis(name = expression("DOC (mg C"~L^{-1}*")")))+
   theme(legend.title = element_blank())
   
-ggsave(paste0(getwd(), "/Output/", "fig_cdom.png"), height = 84, width = 129, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "fig_cdom.png"), height = 84, width = 174, units = "mm")
