@@ -83,6 +83,7 @@ plot_data_clean %>%
   guides(color = guide_legend(title.position="top"))
 
 ggsave(paste0(getwd(), "/Output/", "fig_summer_oxygen.png"), height = 234, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "fig_summer_oxygen.pdf"), height = 234, width = 174, units = "mm")
 
 #Water temperature colored by magnitude of anomaly
 plot_data_avg_dif %>% 
@@ -102,3 +103,4 @@ plot_data_avg_dif %>%
   guides(color = guide_colourbar(title.position="top", title = expression(Temperature~anomaly~"("*degree*C*")"), barwidth = unit(45, "mm")))
 
 ggsave(paste0(getwd(), "/Output/", "fig_summer_wtr.png"), height = 234, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/", "fig_summer_wtr.pdf"), height = 234, width = 174, units = "mm")

@@ -65,7 +65,7 @@ event_doinit <- prep_data_2018 %>%
 #That is, all daily estimated parameters (~70) are used to calculate and oxygen trajectory from water temp. and par during event
 #Wrapped in function so that the influence on scaling gpp and/or r at each time step can be investigated
 
-metabolism_scaling <- function(gpp_scale = 1, r_scale = 1, f_scale = 1, label = FALSE){
+metabolism_scaling <- function(gpp_scale = 1, r_scale = 1, f_scale = 1, label = FALSE, show_f = TRUE){
   
   forecast_df <- metab_2018 %>%
     mutate(forecast = map(metab_result, ~doforecast(.x, doinit=event_doinit, datain=prep_data_2018_event, gpp_scale = gpp_scale, r_scale = r_scale, f_scale = f_scale))) %>%
@@ -117,19 +117,26 @@ metabolism_scaling <- function(gpp_scale = 1, r_scale = 1, f_scale = 1, label = 
         return(label)
       }
       
+      if(show_f){
+        metab_plot <- metab_plot +
+          ggtitle(paste0("GPP ", metab_scale_label(gpp_scale),
+                         ", R ", metab_scale_label(r_scale),
+                         " and F ", metab_scale_label(f_scale)))
+      }else{
+        metab_plot <- metab_plot +
+          ggtitle(paste0("GPP ", metab_scale_label(gpp_scale),
+                         " and R ", metab_scale_label(r_scale)))
+      }
       
-      metab_plot <- metab_plot +
-        ggtitle(paste0("GPP ", metab_scale_label(gpp_scale),
-                       ", R ", metab_scale_label(r_scale),
-                       " and F ", metab_scale_label(f_scale)))
     }
   
     return(metab_plot)
 }
 
-metabolism_scaling(label = TRUE)/metabolism_scaling(1, 3, 1, TRUE)+plot_annotation(tag_levels = "A")
+metabolism_scaling(label = TRUE, show_f = FALSE)/metabolism_scaling(1, 3, 1, label = TRUE, show_f = FALSE)+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(getwd(), "/Output/fig_metabolism.png"), height = 200, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Output/fig_metabolism.pdf"), height = 200, width = 174, units = "mm")
 
 #Investigate how altering gpp and r changes oxygen trajectory during event
 plot_grid <- expand.grid(GPP = c(0.5, 1, 2, 3), R = c(0.5, 1, 2, 3), F = c(0.5, 1, 2)) %>% 
@@ -141,5 +148,3 @@ for(i in seq(1, nrow(plot_grid), 4)){
   print(wrap_plots(plot_grid$plots[i:(i+3)], ncol = 1))
 }
 dev.off()
-
-
