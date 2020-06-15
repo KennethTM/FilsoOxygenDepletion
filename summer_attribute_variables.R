@@ -103,8 +103,8 @@ zmean <- df_zmean %>%
 all_plots_2col <- airt+wnd+rain+zmean+chla+plot_layout(ncol=2)+plot_annotation(tag_levels = "A")
 all_plots_2col
 
-ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")
-ggsave(paste0(getwd(), "/Output/", "fig_attr_vars.pdf"), all_plots_2col, height = 160, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/", "fig_attr_vars.png"), all_plots_2col, height = 160, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/", "fig_attr_vars.pdf"), all_plots_2col, height = 160, width = 174, units = "mm")
 
 #Plot of CDOM through all years during summer
 df_cdom <- read_xlsx(paste0(getwd(), "/Rawdata/filso_cdom_300_750.xlsx"), sheet = 2) %>% 
@@ -140,5 +140,5 @@ df_cdom %>%
   scale_y_continuous(breaks = seq(0, 35, 10), limits = c(0, 35), sec.axis = dup_axis(name = expression("DOC (mg C"~L^{-1}*")")))+
   theme(legend.title = element_blank())
   
-ggsave(paste0(getwd(), "/Output/", "fig_cdom.png"), height = 84, width = 174, units = "mm")
-ggsave(paste0(getwd(), "/Output/", "fig_cdom.pdf"), height = 84, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/", "fig_cdom.png"), height = 84, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/", "fig_cdom.pdf"), height = 84, width = 174, units = "mm")

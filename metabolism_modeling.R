@@ -135,15 +135,15 @@ metabolism_scaling <- function(gpp_scale = 1, r_scale = 1, f_scale = 1, label = 
 
 metabolism_scaling(label = TRUE, show_f = FALSE)/metabolism_scaling(1, 3, 1, label = TRUE, show_f = FALSE)+plot_annotation(tag_levels = "A")
 
-ggsave(paste0(getwd(), "/Output/fig_metabolism.png"), height = 200, width = 174, units = "mm")
-ggsave(paste0(getwd(), "/Output/fig_metabolism.pdf"), height = 200, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/fig_metabolism.png"), height = 200, width = 174, units = "mm")
+ggsave(paste0(getwd(), "/Figures/fig_metabolism.pdf"), height = 200, width = 174, units = "mm")
 
 #Investigate how altering gpp and r changes oxygen trajectory during event
 plot_grid <- expand.grid(GPP = c(0.5, 1, 2, 3), R = c(0.5, 1, 2, 3), F = c(0.5, 1, 2)) %>% 
   arrange(GPP, F) %>% 
   mutate(plots = pmap(list(GPP, R, F), ~metabolism_scaling(..1, ..2, ..3, label = TRUE)))
 
-pdf(paste0(getwd(), "/Output/fig_supp_metabolism.pdf"), paper = "a4", width = 7, height = 12)
+pdf(paste0(getwd(), "/Figures/fig_supp_metabolism.pdf"), paper = "a4", width = 7, height = 12)
 for(i in seq(1, nrow(plot_grid), 4)){
   print(wrap_plots(plot_grid$plots[i:(i+3)], ncol = 1))
 }
