@@ -14,7 +14,7 @@ prep_data_2018 <- raw_data_2018 %>%
          date = as_date(DateTime_UTC)) %>% 
   dplyr::select(date, DateTime_UTC, doobs, dosat, kgas, zmix = zmean, lux = par, wtr, dummy)
 
-#Data til beregning af nat slopes (resp under iltsvind)
+#Data for calculation of maximum metabolic rates
 # library(openxlsx)
 # prep_data_2018 %>%
 #   mutate(doobs_diff = c(0, diff(doobs)),

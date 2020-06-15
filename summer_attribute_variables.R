@@ -12,7 +12,6 @@ vejrst_2018_df <- read.csv(paste0(getwd(), "/Rawdata/Vejrstation_Filsoe_18-09-12
 df_wnd_rain_airt <- vejrst_2018_df %>% 
   select(DateTime_UTC, rain, wnd, airt) %>% 
   filter(month(DateTime_UTC) %in% c(6, 7, 8)) %>% 
-  #mutate(DateTime_UTC = round_date(DateTime_UTC, "24 hour")) %>% 
   mutate(date = as_date(DateTime_UTC)) %>% 
   na.omit() %>% 
   select(-DateTime_UTC) %>% 
@@ -132,8 +131,6 @@ df_cdom %>%
               filter(month(date) %in% c(6, 7, 8)) %>% 
               mutate(year = "2018"), aes(yday(date), doc))+ 
   scale_color_lancet()+
-  #scale_color_viridis_d(direction = -1)+
-  #scale_color_brewer(palette = "Set1", direction = -1)+
   scale_x_continuous(breaks = jday_pos, labels = jday_labs)+
   ylab(expression("CDOM"[300-750]*" (m"^{-1}*")"))+
   xlab("Month")+

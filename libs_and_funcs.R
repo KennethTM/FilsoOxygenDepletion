@@ -7,6 +7,7 @@ Sys.setenv(TZ="GMT")
 Sys.setlocale("LC_TIME", "US")
 
 #Aq. Sci.:For most journals the figures should be 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm.
+
 theme_pub <- theme_bw() + 
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(), 
@@ -29,8 +30,7 @@ nllfn <- function (pars, datain) {
   Pmax <- exp(pars[1])
   Rmax <- exp(pars[2])
   DOInit <- exp(pars[3])
-  #alpha <- exp(pars[3])
-  
+
   #definer variable fra datain frame
   nobs <- dim(datain)[1]
   irr <- datain$lux
@@ -44,13 +44,11 @@ nllfn <- function (pars, datain) {
   #Set up output
   dohat <- rep(NA,nobs)
   atmflux <- rep(NA,nobs)
-  #dohat[1] <- datain$doobs[1]
   dohat[1] <- DOInit
   
   #metabolisme model
   for (i in 1:(nobs-1)) {
     atmflux[i] <- dummy[i] * -k.gas[i] * (dohat[i] - dosat[i]) / zmix[i]  
-    #dohat[i+1] <- dohat[i] + (Pmax*tanh(alpha*irr[i]/Pmax)) - (Rmax*1.073^(Rwtr[i]-20)) + atmflux[i]
     dohat[i+1] <- dohat[i] + (Pmax*irr[i]) - (Rmax*1.073^(Rwtr[i]-20)) + atmflux[i]
   }
   
@@ -78,22 +76,19 @@ domodel <- function(pars, datain) {
   dopred <- rep(NA,nobs)
   atmflux <- rep(NA,nobs)
   dopred[1] <- pars$doinit
-  #dopred[1] <- datain$doobs[1]
-  
+
   for (i in 1:(nobs-1)) {
     atmflux[i] <- dummy[i] * -k.gas[i] * (dopred[i] - dosat[i]) / zmix[i]  
-    #dopred[i+1] <- dopred[i] + (pars$gppcoef*tanh(pars$acoef*irr[i]/pars$gppcoef)) - (pars$rcoef*1.073^(Rwtr[i]-20)) + atmflux[i]
     dopred[i+1] <- dopred[i] + (pars$gppcoef*irr[i]) - (pars$rcoef*1.073^(Rwtr[i]-20)) + atmflux[i]
   }
   
   return(dopred)
 }
 
-#samle funktion
+#function collecting metabolism tools
 metab_calc <- function(df){
   datain <- df
   
-  #parguess <- log(c(1.7E-8, 4.5E-3, 1E-5))
   parguess <- log(c(5E-5, 2E-3, datain$doobs[1])) #1.3E-4 #7E-6
   
   fit <- tryCatch(optim(parguess, nllfn, datain = datain, method = "Nelder-Mead"), error = function(err){NULL}) #BFGS
@@ -102,15 +97,12 @@ metab_calc <- function(df){
   gppcoef <- exp(fit$par[1])
   rcoef <- exp(fit$par[2])
   doinit <- exp(fit$par[3])
-  #acoef <- exp(fit$par[3])
   convergence <- fit$convergence
   
-  #GPP <- mean(gppcoef*tanh(acoef*datain$lux/gppcoef))*144
   GPP <- mean(gppcoef*datain$lux)*144
   R <- mean(rcoef*1.073^(datain$wtr-20))*144
   NEP <- GPP - R
   
-  #pars <- list(gppcoef = gppcoef, rcoef = rcoef, acoef = acoef) 
   pars <- list(gppcoef = gppcoef, rcoef = rcoef, doinit = doinit) 
   dopred <- domodel(pars = pars, datain = datain)
   r_spear <- cor(dopred, datain$doobs, method = "spearman")
@@ -118,10 +110,8 @@ metab_calc <- function(df){
   
   return(list(data.frame(DateTime_UTC_min = min(datain$DateTime_UTC), DateTime_UTC_max = max(datain$DateTime_UTC),
                          gppcoef = gppcoef, rcoef = rcoef, doinit = doinit, convergence = convergence,
-                         #gppcoef = gppcoef, rcoef = rcoef, convergence = convergence,
                          GPP = GPP, R = R, NEP = NEP, r_spear = r_spear, rmse = rmse),
               data.frame(DateTime_UTC = datain$DateTime_UTC, dopred = dopred, doobs = datain$doobs)))
-  
 }
 
 #dopred

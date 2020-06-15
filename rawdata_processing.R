@@ -46,7 +46,6 @@ oxygen_2018_df <- raw_df %>%
   filter(year(DateTime_UTC) == 2018 & hob == 150) %>% 
   mutate(DateTime_UTC = round_date(DateTime_UTC, "10 mins"))
 
-#tidszone er korrekt her
 vejrst_2018_df <- read.csv(raw_files[grep("Vejrstation_Filsoe_18-09-12", raw_files)]) %>% 
   tbl_df() %>% 
   set_names(c("DateTime_GMT2", "atmpres", "wnd", "wnd_gust", "wnd_dir", "par", "rain", "airt", "rh")) %>% 
@@ -56,7 +55,7 @@ vejrst_2018_df <- read.csv(raw_files[grep("Vejrstation_Filsoe_18-09-12", raw_fil
 
 par_uw_list <- lapply(raw_files[grep("par*", raw_files)], function(file){read.csv(file, skip = 9, header = FALSE) %>% 
     tbl_df() %>% 
-    set_names(c("rownumber", "Date", "Time", "raw_value", "cal_value")) %>% #tidszone??
+    set_names(c("rownumber", "Date", "Time", "raw_value", "cal_value")) %>% 
     mutate(DateTime_UTC = dmy_hms(paste(Date, Time))) %>% 
     select(DateTime_UTC, par_uw = cal_value)})
 
@@ -69,7 +68,6 @@ par_uw_df <- bind_rows("st2_2017_bot" = par_uw_list[[1]],
 par_uw_2018_df <- par_uw_df %>% 
   filter(source == "st2_2018_top")
 
-###Tjek denne excel fil###
 depths_2018 <- read_xls(paste0(getwd(), "/Rawdata/filso_depths.xls"), sheet = 1, skip = 8) %>% 
   select(datetime = Tid...1, zmean = middeldybde, zmax = maksdybde) %>% 
   na.omit() %>% 
@@ -85,7 +83,6 @@ depths_2018_interp <- depths_2018 %>%
   mutate_at(vars(zmean, zmax), funs(na.approx(., na.rm = FALSE)))
 
 #Previously prepared files describing water temperature, schmidt stability, water temp. diff and zmix
-###INDSÆT MARKDOWN DOKUMENT OG DATA FOR NEDENSTÅENDE DATA###
 wtr_list <- lapply(raw_files[grep("*rds", raw_files)], readRDS)
 names(wtr_list) <- c("depths", "schmidt", "dif", "wtr", "zmix")
 
@@ -106,4 +103,3 @@ meta_data_2018 <- oxygen_2018_df %>%
   na.omit()
 
 saveRDS(meta_data_2018, paste0(getwd(), "/Output/meta_2018.rds"))
-
